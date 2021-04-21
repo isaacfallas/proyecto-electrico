@@ -14,15 +14,15 @@ import cv2
 
 ################################################  Parametros  ############################################
 
-ventanaAncho = 300
-ventanaAltura = 300
-paso = 100
+ventanaAncho = 10
+ventanaAltura = 10
+paso = 10
 
 input_size = (224,224)
 
 visualize = 0
 
-min_prob = 0.7
+min_prob = 0.75
 
 ################################################  Variables  #############################################
 
@@ -30,7 +30,7 @@ print("loading network...")
 model = ResNet50(weights="imagenet", include_top=True)
 
 print("reading image...")
-imagen = cv2.imread('images/escarabajo1.jpg')
+imagen = cv2.imread('images/escarabajo2.jpg')
 imageHight, imageWidth, chanels = imagen.shape
 
 rois = []
@@ -38,25 +38,32 @@ cords = []
 
 ########################################## Obtener ROIS ####################################################
 
-i = 0
+while ventanaAncho < imageWidth:
 
-for (x, y, roiOrig) in ventana(imagen, paso, ventanaAncho, ventanaAltura):
+    for (x, y, roiOrig) in ventana(imagen, paso, ventanaAncho, ventanaAltura):
 
-    roi = cv2.resize(roiOrig, input_size)
-    roi = img_to_array(roi)
-    roi = preprocess_input(roi)
+        roi = cv2.resize(roiOrig, input_size)
+        roi = img_to_array(roi)
+        roi = preprocess_input(roi)
 
-    cords.append((x, y, x + ventanaAncho, y + ventanaAltura))
-    rois.append(roi)
+        cords.append((x, y, x + ventanaAncho, y + ventanaAltura))
+        rois.append(roi)
 
-    if visualize==1:
-        copyImage = imagen.copy()
-        cv2.rectangle(copyImage, (x,y), (x+ventanaAncho, y+ventanaAltura), (0, 255, 0), 2)
-        cv2.imshow("Visual", copyImage)
-        cv2.imshow("ROI", roiOrig)
-        cv2.waitKey(0)
+        if visualize==1:
+            copyImage = imagen.copy()
+            cv2.rectangle(copyImage, (x,y), (x+ventanaAncho, y+ventanaAltura), (0, 255, 0), 2)
+            cv2.imshow("Visual", copyImage)
+            cv2.imshow("ROI", roiOrig)
+            cv2.waitKey(0)
 
-    i = i + 1
+        cords.append((x, y, x + ventanaAncho, y + ventanaAltura))
+        rois.append(roi)
+
+
+#rois = np.array(rois, dtype="float32")
+#predicciones = model.predict(rois)
+#predicciones = imagenet_utils.decode_predictions(predicciones, top=1)
+#print(predicciones)
 
 
 rois = np.array(rois, dtype="float32")
@@ -64,8 +71,6 @@ rois = np.array(rois, dtype="float32")
 ##################################### Clasificacion de los ROIS ##########################################
 
 predicciones = model.predict(rois)
-
-#print(predicciones[0])
 
 predicciones = imagenet_utils.decode_predictions(predicciones, top=1)
 labels = {}
@@ -83,6 +88,40 @@ for (i, p) in enumerate(predicciones):
         L.append((box, prob))
         labels[label] = L
 
+print(labels.items())
+
+################################## Mostrar todos los ROIS en la imagen ####################################
+
+print("drawing all ROIS...")
+for label in labels.keys():
+    clone = imagen.copy()
+
+    for(box, prob) in labels[label]:
+        
+        (initX, initY, endX, endY) = box
+        cv2.rectangle(clone, (initX, initY), (endX, endY), (0, 255, 0), 2)
+
+    cv2.imshow("Figure", clone)
+    #cv2.waitKey(0)
+
+################################# Aplicar NMS(Non Max Suppression) ########################################
+    clone = imagen.copy()
+    
+    boxes = np.array([p[0] for p in labels[label]])
+    probability = np.array([p[1] for p in labels[label]])
+
+    print(boxes)
+    print(probability)
+
+    boxes = non_max_suppression(boxes, probability)
+
+    print(boxes)
+
+    for (x1, y1, x2, y2) in boxes:
+        cv2.rectangle(clone, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+    cv2.imshow("Figure2", clone)
+    cv2.waitKey(0)
 
 
 #print(len(L))
