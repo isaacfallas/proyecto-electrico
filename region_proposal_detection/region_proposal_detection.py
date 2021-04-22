@@ -17,7 +17,7 @@ def selective_search(image):
 
 labelsFilter = ["ant"]
 
-minProb = 0.2
+minProb = 0.1
 
 print("loading ResNet50 model...")
 
@@ -38,10 +38,10 @@ print(len(rects))
 
 for (x, y, w, h) in rects:
 
-    if h/float(H) < 0.08 or w/float(W) < 0.08:
+    if h/float(H) < 0.05 or w/float(W) < 0.05:
         continue
 
-    if h/float(H) > 0.8 or w/float(W) > 0.8:
+    if h/float(H) > 0.5 or w/float(W) > 0.5:
         continue 
 
     roi = image[y:y+h, x:x+w]
@@ -70,7 +70,7 @@ for (i, p) in enumerate(preds):
     
     (imageID, label, prob) = p[0]
     
-    if labelFilters is not None and label not in labelFilters:
+    if labelsFilter is not None and label not in labelsFilter:
         continue
 
     if prob >= minProb:
@@ -81,4 +81,28 @@ for (i, p) in enumerate(preds):
         L.append((box , prob))
         labels[label] = L
 
+for label in labels.keys():
+
+    clone = image.copy()
+
+    for (box,copy) in labels[label]:
+        (x1,y1,x2,y2) = box
+        cv2.rectangle(clone, (x1, y1), (x2, y2), (0,255,0), 2)
+
+    #cv2.imshow("All posibilities", clone)
+    cv2.imwrite('All posibilities.jpg',clone)
+
+    clone = image.copy()
+
+    boxes = np.array([p[0] for p in labels[label]])
+    proba = np.array([p[1] for p in labels[label]])
+    boxes = non_max_suppression(boxes, proba)
     
+    for (x1, y1, x2, y2) in boxes:
+        
+        cv2.rectangle(clone, (x1, y1), (x2, y2), (0,255,0), 2)
+
+    cv2.imwrite('True posibilities.jpg',clone)
+    #cv2.imshow("True posibilities", clone)
+    #cv2.waitKey(0)
+
