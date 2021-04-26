@@ -86,7 +86,7 @@ model = SmallVGGNet.build(width=64, height=64, depth=3,
 # initialize our initial learning rate, # of epochs to train for,
 # and batch size
 INIT_LR = 0.01
-EPOCHS = 75
+EPOCHS = 32
 BS = 32
 
 # initialize the model and optimizer (you'll want to use
