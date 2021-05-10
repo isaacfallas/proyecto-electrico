@@ -1,6 +1,3 @@
-# USAGE
-# python detect_object_rcnn.py --image images/raccoon_01.jpg
-
 # import the necessary packages
 from pyimagesearch.nms import non_max_suppression
 from pyimagesearch import config
@@ -33,7 +30,7 @@ image = imutils.resize(image, width=500)
 print("[INFO] running selective search...")
 ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
 ss.setBaseImage(image)
-ss.switchToSelectiveSearchFast()
+ss.switchToSelectiveSearchQuality()
 rects = ss.process()
 
 # initialize the list of region proposals that we'll be classifying
@@ -60,6 +57,9 @@ for (x, y, w, h) in rects[:config.MAX_PROPOSALS_INFER]:
 	proposals.append(roi)
 	boxes.append((x, y, x + w, y + h))
 
+print(len(proposals))
+print(len(boxes))
+
 # convert the proposals and bounding boxes into NumPy arrays
 proposals = np.array(proposals, dtype="float32")
 boxes = np.array(boxes, dtype="int32")
@@ -68,23 +68,29 @@ print("[INFO] proposal shape: {}".format(proposals.shape))
 # classify each of the proposal ROIs using fine-tuned model
 print("[INFO] classifying proposals...")
 proba = model.predict(proposals)
-
+print(proba)
 # find the index of all predictions that are positive for the
 # "raccoon" class
 print("[INFO] applying NMS...")
 labels = lb.classes_[np.argmax(proba, axis=1)]
-idxs = np.where(labels == "raccoon")[0]
-
+idxs = np.where(labels == "ant")[0]
+print(labels)
+print(idxs)
 # use the indexes to extract all bounding boxes and associated class
 # label probabilities associated with the "raccoon" class
 boxes = boxes[idxs]
 proba = proba[idxs][:, 1]
-
+print(boxes)
+print(proba)
 # further filter indexes by enforcing a minimum prediction
 # probability be met
 idxs = np.where(proba >= config.MIN_PROBA)
 boxes = boxes[idxs]
 proba = proba[idxs]
+
+print(idxs)
+print(boxes)
+print(proba)
 
 # clone the original image so that we can draw on it
 clone = image.copy()
@@ -96,7 +102,7 @@ for (box, prob) in zip(boxes, proba):
 	cv2.rectangle(clone, (startX, startY), (endX, endY),
 		(0, 255, 0), 2)
 	y = startY - 10 if startY - 10 > 10 else startY + 10
-	text= "Raccoon: {:.2f}%".format(prob * 100)
+	text= "Ant: {:.2f}%".format(prob * 100)
 	cv2.putText(clone, text, (startX, y),
 		cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 2)
 
@@ -113,7 +119,7 @@ for i in boxIdxs:
 	cv2.rectangle(image, (startX, startY), (endX, endY),
 		(0, 255, 0), 2)
 	y = startY - 10 if startY - 10 > 10 else startY + 10
-	text= "Raccoon: {:.2f}%".format(proba[i] * 100)
+	text= "Ant: {:.2f}%".format(proba[i] * 100)
 	cv2.putText(image, text, (startX, y),
 		cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 2)
 
