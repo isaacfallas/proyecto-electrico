@@ -1,5 +1,5 @@
 # import the necessary packages
-from pyimagesearch import config
+from include import config
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.layers import AveragePooling2D
@@ -25,15 +25,15 @@ import os
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-p", "--plot", type=str, default="plot.png",
+ap.add_argument("-p", "--plot", type=str, default="plots/plot.png",
 	help="path to output loss/accuracy plot")
 args = vars(ap.parse_args())
 
 # initialize the initial learning rate, number of epochs to train for,
 # and batch size
 INIT_LR = 1e-4
-EPOCHS = 5
-BS = 32
+EPOCHS = 2
+BS = 2
 
 # grab the list of images in our dataset directory, then initialize
 # the list of data (i.e., images) and class labels
@@ -130,15 +130,22 @@ predIdxs = np.argmax(predIdxs, axis=1)
 print(classification_report(testY.argmax(axis=1), predIdxs,
 	target_names=lb.classes_))
 
+for dirPath in (config.MODEL_RCNN, config.LABEL_ENCODER):
+	# if the output directory does not exist yet, create it
+	if not os.path.exists(dirPath):
+		os.makedirs(dirPath)
+
 # serialize the model to disk
 print("[INFO] saving mask detector model...")
-model.save(config.MODEL_PATH, save_format="h5")
+if os.path.isfile(config.MODEL_PATH) is False:
+	model.save(config.MODEL_PATH, save_format="h5")
 
 # serialize the label encoder to disk
 print("[INFO] saving label encoder...")
-f = open(config.ENCODER_PATH, "wb")
-f.write(pickle.dumps(lb))
-f.close()
+if os.path.isfile(config.ENCODER_PATH) is False:
+	f = open(config.ENCODER_PATH, "wb")
+	f.write(pickle.dumps(lb))
+	f.close()
 
 # plot the training loss and accuracy
 N = EPOCHS

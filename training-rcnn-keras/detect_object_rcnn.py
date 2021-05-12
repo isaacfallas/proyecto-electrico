@@ -1,6 +1,6 @@
 # import the necessary packages
-from pyimagesearch.nms import non_max_suppression
-from pyimagesearch import config
+from include.nms import non_max_suppression
+from include import config
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.models import load_model
@@ -73,7 +73,7 @@ print(proba)
 # "raccoon" class
 print("[INFO] applying NMS...")
 labels = lb.classes_[np.argmax(proba, axis=1)]
-idxs = np.where(labels == "ant")[0]
+idxs = np.where(labels == "circ")[0]
 print(labels)
 print(idxs)
 # use the indexes to extract all bounding boxes and associated class

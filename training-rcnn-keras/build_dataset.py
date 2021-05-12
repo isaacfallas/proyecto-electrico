@@ -1,6 +1,6 @@
 # import the necessary packages
-from pyimagesearch.iou import compute_iou
-from pyimagesearch import config
+from include.iou import compute_iou
+from include import config
 from bs4 import BeautifulSoup
 from imutils import paths
 import cv2
@@ -102,7 +102,7 @@ for (i, imagePath) in enumerate(imagePaths):
 
 			# check to see if the IOU is greater than 70% *and* that
 			# we have not hit our positive count limit
-			if iou > 0.7 and totalPositive < 300 and positiveROIs <= config.MAX_POSITIVE:
+			if iou > 0.6 and totalPositive < 400 and positiveROIs <= config.MAX_POSITIVE:
 				# extract the ROI and then derive the output path to
 				# the positive instance
 				roi = image[propStartY:propEndY, propStartX:propEndX]
@@ -124,7 +124,7 @@ for (i, imagePath) in enumerate(imagePaths):
 			# check to see if there is not full overlap *and* the IoU
 			# is less than 5% *and* we have not hit our negative
 			# count limit
-			if not fullOverlap and totalNegative < 500 and iou == 0.0 and \
+			if not fullOverlap and totalNegative < 400 and iou < 0.1 and \
 				negativeROIs <= config.MAX_NEGATIVE:
 				# extract the ROI and then derive the output path to
 				# the negative instance
